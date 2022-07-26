@@ -1,0 +1,62 @@
+# Shamelessly copied from http://flask.pocoo.org/docs/quickstart/
+
+from flask import Flask
+from flask import request
+from flask import jsonify
+from re
+
+app = Flask(__name__)
+
+
+class InvalidUsage(Exception):
+    status_code=400
+    def __init__(self,message,status_code=None,payload=None):
+        Exception.__init__(self)
+        self.message=message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+        
+@app.errorhandler(InvalidUsage)
+def handle_in_valid_error(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+         
+
+@app.route('/')
+def hello_world():
+    cusipToGetData = request.args.get('cusipToGetData')
+    validateCusip(cusipToGetData)
+    return 'validated cusip!'
+@app.route('/coupondetails/getcoupondetails',methods=['Get'])
+def hello_world1():
+    cusipToGetData = request.args.get('cusipToGetData')
+    validateCusip(cusipToGetData)
+    return 'validated cusip!'
+def validateCusip(cusip): 
+    if len(cusip)!=9:
+       print('not 9--------------')
+       respMessage = "less than 9"
+       raise InvalidUsage(respMessage,status_code=500)
+    if cusip.isnumeric() or cusip.isalnum():
+       if(bool(re.match('^[a-zA-Z0-9]*$',cusip))==True):
+           return "cusip is fine"
+       else:
+           respMessage = "its has special chars"
+           raise InvalidUsage(respMessage,status_code=500)
+    else:
+        respMessage = "cusip may contain special chars"
+        raise InvalidUsage(respMessage,status_code=500)
+
+       
+    
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=81)
+
